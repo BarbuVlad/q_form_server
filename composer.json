@@ -1,0 +1,40 @@
+{
+    "name": "slim/q-form-server",
+    "description": "A Slim Framework app used as a backend for q_form software",
+    "license": "MIT",
+    "require": {
+        "php": "^7.2 || ^8.0",
+        "ext-json": "*",
+        "ext-pdo": "^7.4",
+        "monolog/monolog": "^2.2",
+        "php-di/php-di": "^6.3",
+        "slim/psr7": "^1.3",
+        "slim/slim": "^4.7",
+        "slim/twig-view": "^3.2"
+    },
+    "require-dev": {
+        "jangregor/phpstan-prophecy": "^0.8.1",
+        "phpstan/extension-installer": "^1.1.0",
+        "phpstan/phpstan": "^0.12.80",
+        "phpunit/phpunit": "^8.0 || ^9.0"
+    },
+    "config": {
+        "process-timeout": 0,
+        "sort-packages": true
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "start": "php -S localhost:8080 -t public",
+        "start_vm": "php -S 192.168.206.129:8080 -t public public/index.php",
+        "test": "phpunit"
+    }
+}

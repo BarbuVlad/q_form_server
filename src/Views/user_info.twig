@@ -1,0 +1,45 @@
+<html>
+ <head>
+ <style>
+    body {background-color: #1f1f1f;}
+    h1   {color: #e8e8e8; padding-left: 40px; letter-spacing: 3px;}
+    h2   {color: #e8e8e8; padding-left: 40px; letter-spacing: 3px;}
+
+    a:link {
+        color: #87b6e8;
+    }
+    a:visited {
+        color: #749bc4;
+    }
+    a:hover {
+        color: #6689ad;
+    }
+
+    ul {padding-left: 95px; color: wheat}
+    li {font-size: 25px; padding-bottom: 8px;}
+</style>
+ </head>
+
+ <body>
+   <h1>User: {{ name }}</h1>
+   <br />
+   <br />
+
+<h2> Tests created </h2>
+<ul>
+{% for test in created %}
+    <li> id: {{ test.id }}; date: {{ test.created_date }} </li>
+{% endfor %}
+</ul>
+
+<br />
+
+<h2> Tests solved </h2>
+<ul>
+{% for test in solved %}
+    <li> test id: {{ test.id_test }}; date : {{ test.date }} </li>
+{% endfor %}
+</ul>
+
+ </body>
+</html>

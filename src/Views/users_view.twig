@@ -1,0 +1,30 @@
+<html>
+ <head>
+ <style>
+    body {background-color: #1f1f1f;}
+    h1   {color: #e8e8e8; padding-left: 40px; letter-spacing: 3px;}
+
+    a:link {
+        color: #87b6e8;
+    }
+    a:visited {
+        color: #749bc4;
+    }
+    a:hover {
+        color: #6689ad;
+    }
+
+    ul {padding-left: 95px; color: wheat}
+    li {font-size: 25px; padding-bottom: 8px;}
+</style>
+ </head>
+
+ <body>
+   <h1>Users</h1>
+<ul>
+{% for user in users %}
+    <li> <a href= {{ "http://192.168.206.129:8080/views/user/" ~ user.id }} > {{ user.name }} </a></li>
+{% endfor %}
+</ul>
+ </body>
+</html>
