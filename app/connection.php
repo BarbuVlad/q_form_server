@@ -1,6 +1,6 @@
 <?php
 /* - Database connection -
-This file attaches a database conn middleware to the 
+This file attaches a database conn ~middleware to the 
 main $app object, by setting into it's container a
 PDO connection
 */
