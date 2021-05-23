@@ -55,7 +55,6 @@ $app->get("/", function(Req $request, Resp $response, array $args){
     $response->getBody()->write("<h2>Server is running</h2>");
    return $response;
 });
-
 /* CORS lazy (allow from all) */
 $app->options('/{routes:.+}', function ($request, $response, $args) {
     return $response;

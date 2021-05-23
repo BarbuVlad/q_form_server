@@ -82,7 +82,7 @@ return function(App $app) {
             }
 
             //create the sql command
-            $sql = "SELECT password FROM `user` WHERE name = :name LIMIT 0, 1";
+            $sql = "SELECT password, id FROM `user` WHERE name = :name LIMIT 0, 1";
             $stmt = $this->get('connection')->prepare($sql); ///<prepare statement
             //validate data
             //bind data
@@ -91,12 +91,15 @@ return function(App $app) {
             //execute
             try{
                if($stmt->execute()){ ///<execute statement
-                $pass = $stmt->fetch(PDO::FETCH_ASSOC)["password"];
+                $x = $stmt->fetch(PDO::FETCH_ASSOC);
+                $pass=$x["password"];
+                $id=$x["id"];
                 if($pass==null){goto x;}
 
                 if(password_verify($data["password"],$pass)){///< password matched to hash
                     $ok = json_encode(array('message' => 'user login successfully!',
-                    'code' => '0'));
+                    'code' => '0',
+                    'id' => $id));
                     $response->withStatus(200)->getBody()->write($ok);
                     return $response;
                 } else { ///< password not matched to hash
@@ -119,6 +122,62 @@ return function(App $app) {
             return $response;
         });
 
+        $user->get('/getSolvedTests/{userId}', function($request, $response, $args){
+            /*Read from DB the user test data */
+            $userId = $args['userId'];
+
+            //create the sql command
+            $sql = "SELECT id AS id_answer, id_test, date FROM `answers` WHERE id_user = :id_user;";
+            $stmt = $this->get('connection')->prepare($sql); ///<prepare statement
+            //validate data
+            //bind data
+            $stmt->bindParam(':id_user', $userId);
+            
+            //execute
+            try{
+               if($stmt->execute()){ ///<execute statement
+                $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $response->withStatus(200)->getBody()->write(json_encode($data));
+                return $response;
+                }
+            }catch(PDOException $pdo_err){
+                $err = json_encode(array('ERROR' => 'failed at reading user solved tests!',
+                'code' => '1'));
+                $response->withStatus(503)->getBody()->write($err);
+                return $response;
+            }
+            $response->getBody()->withStatus(500)->write("Unkonwn error occurred!");
+            return $response;
+        });
+
+        $user->get('/getCreatedTests/{userId}', function($request, $response, $args){
+            /*Read from DB the user test data */
+            $userId = $args['userId'];
+
+            //create the sql command
+            $sql = "SELECT id AS id_test, created_date FROM `test` WHERE creator_id = :creator_id;";
+            $stmt = $this->get('connection')->prepare($sql); ///<prepare statement
+            //validate data
+            //bind data
+            $stmt->bindParam(':creator_id', $userId);
+            
+            //execute
+            try{
+               if($stmt->execute()){ ///<execute statement
+                $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $response->withStatus(200)->getBody()->write(json_encode($data));
+                return $response;
+                }
+            }catch(PDOException $pdo_err){
+                $err = json_encode(array('ERROR' => 'failed at reading user solved tests!',
+                'code' => '1'));
+                $response->withStatus(503)->getBody()->write($err);
+                return $response;
+            }
+            $response->getBody()->withStatus(500)->write("Unkonwn error occurred!");
+            return $response;
+        });
+
 
         
 
@@ -131,12 +190,13 @@ return function(App $app) {
             /*Insert a new entry in users table */
             $data = $request->getParsedBody();
             //Catch some errors
-            if(!$data["payload"]){
-                $err = json_encode(array('ERROR' => 'payload missing',
+            if(!$data["payload"] || !$data["creator_id"]){
+                $err = json_encode(array('ERROR' => 'payload or id missing',
                                         'code' => '1'));
                 $response->withStatus(400)->getBody()->write($err);
                 return $response;
             }
+
             //create the sql command
             $sql = "INSERT INTO `test`(creator_id, created_date, payload) VALUES (:creator_id, CURRENT_DATE, :payload);";
             $stmt = $this->get('connection')->prepare($sql); ///<prepare statement
@@ -144,7 +204,7 @@ return function(App $app) {
             //validate data
             //bind data
             $stmt->bindParam(':creator_id', $data["creator_id"]);
-            $stmt->bindParam(':payload', $data["payload"]);
+            $stmt->bindParam(':payload', json_encode($data["payload"]));
 
             try{
                 if($stmt->execute()){///<execute statement
@@ -166,14 +226,87 @@ return function(App $app) {
 
         });
 
+        $test->get('/getTestToSolve/{testId}', function($request, $response, $args){
+            /*Read from DB the user test data */
+            $testId = $args['testId'];
+
+            //create the sql command
+            $sql = "SELECT id AS id_test, payload FROM `test` WHERE id = :test_id LIMIT 0, 1;";
+            $stmt = $this->get('connection')->prepare($sql); ///<prepare statement
+            //validate data
+            //bind data
+            $stmt->bindParam(':test_id', $testId);
+            //execute
+            try{
+               if($stmt->execute()){ ///<execute statement
+                    $data = $stmt->fetch(PDO::FETCH_ASSOC);
+                    //Clean data
+                    $data["payload"] = str_replace(",\"corect\":true", "", $data["payload"]);///< anti-theft measure
+                    $data["code"]='0';///< add success code
+                    $response->withStatus(200)->getBody()->write(json_encode($data));
+                    return $response;
+                }
+            }catch(PDOException $pdo_err){
+                $err = json_encode(array('ERROR' => 'failed at reading test data!',
+                'code' => '1'));
+                $response->withStatus(503)->getBody()->write($err);
+                return $response;
+            }
+            $response->getBody()->withStatus(500)->write("Unkonwn error occurred!");
+            return $response;
+        });
+
         /*
         $test->post('/test/login', function($request, $response, $args){
 
 
         });
         */
+    });
 
-        
+    $app->group('/answer', function(RouteCollectorProxy $answer){
+        /*In this group we define operations regarding a single instance of a test:
+        create, read etc.*/
+        $answer->post('/create', function($request, $response, $args){
+            /*Insert a new entry in users table */
+            $data = $request->getParsedBody();
+            //Catch some errors
+            if(!$data["answers"] || !$data["id_test"] || !$data["id_user"]){
+                $err = json_encode(array('ERROR' => 'answers, id_test or id_user missing',
+                                        'code' => '1'));
+                $response->withStatus(400)->getBody()->write($err);
+                return $response;
+            }
+
+            //create the sql command
+            $sql = "INSERT INTO `answers`(id_user, id_test, date, answers) VALUES (:id_user, :id_test, CURRENT_DATE, :answers);";
+            $stmt = $this->get('connection')->prepare($sql); ///<prepare statement
+
+            //validate data
+            //bind data
+            $stmt->bindParam(':id_user', $data["id_user"]);
+            $stmt->bindParam(':id_test', $data["id_test"]);
+            $stmt->bindParam(':answers', json_encode($data["answers"]));
+
+            try{
+                if($stmt->execute()){///<execute statement
+                    $ok = json_encode(array('message' => 'answer created successfully!',
+                    'code' => '0'));
+                    $response->withStatus(200)->getBody()->write($ok);
+                    return $response;
+                } 
+
+            }catch(PDOException $pdo_err){
+                $err = json_encode(array('ERROR' => 'failed at creating answer!',
+                'code' => '2'));
+                $response->withStatus(503)->getBody()->write($err);
+                return $response;
+            }
+            // $html = var_export($data, true);
+            $response->getBody()->withStatus(500)->write("Unkonwn error occurred!");
+            return $response;
+
+        });
 
     });
 
