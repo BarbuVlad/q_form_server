@@ -9,8 +9,9 @@ declare(strict_types=1);
 
 use DI\Container;
 
-return function (Container $container) {
-    $container->set('connection', function() use ($container) {
+return function (Container $container, $vendor="mysql") {
+    $container->set('connection', function() use ($container, $vendor) {
+    if($vendor=="mysql"){
         $connection = $container->get('settings')['connection'];
 
         $host = $connection['host'];
@@ -22,8 +23,20 @@ return function (Container $container) {
             $connection = new PDO ('mysql:host=' . $host . ';dbname=' . $dbname, $dbuser, $dbpass);
             $connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
           } catch (PDOException $e) { echo 'Error at connection. ' . $e->getMessage();}
-
           return $connection;
+
+    } else if($vendor=="sqlite") {
+        $connection = $container->get('settings')['connection_sqlite'];
+        $dbname = $connection['dbname'];
+
+        try {
+            $connection = new PDO('sqlite:'.$dbname.'');
+            $connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+          } catch (PDOException $e) {
+            echo 'Error at connection. ' . $e->getMessage();
+          }
+          return $connection;
+    }
     });
 
 

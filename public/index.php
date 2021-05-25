@@ -21,7 +21,7 @@ AppFactory::setContainer($container);
 
 //initialize container with database connection
 $connection = require __DIR__ . '/../app/connection.php';
-$connection($container);
+$connection($container);//,"sqlite"
 
 $app = AppFactory::create();
 

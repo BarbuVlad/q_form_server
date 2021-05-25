@@ -14,14 +14,21 @@ return function (Container $container){
                 'path' => __DIR__ . '/../src/Views',
                 'settings' => ['cache' => false],
             ],
-            //database settings (local VM hosted)
+            /*database settings, mysql and sqlite as alternative (local VM hosted)*/
             'connection' => [
                 "host" => "localhost",
                 "dbname" => "q_form_db",
                 "dbuser" => "pcuser",
                 "dbpass" => "102938"
+            ],
 
+            'connection_sqlite' => [
+                //"host" => "localhost",
+                "dbname" => "/home/pcuser/q_form_db.db",
+                //"dbuser" => "pcuser",
+                //"dbpass" => "102938"
             ]
+
         ];
     });
 
