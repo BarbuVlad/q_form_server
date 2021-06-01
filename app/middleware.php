@@ -11,9 +11,8 @@ use Slim\App;
 
 return function(App $app) {
     //addErrorMiddleware(displayErrorDetails, logError, logErrorDetails)
-    $app->addErrorMiddleware(true,true,false);
+    $errorMiddleware = $app->addErrorMiddleware(true,true,false);
+    //$errorMiddleware->setDefaultErrorHandler($errorHandler);
     // Parse json, form data and xml
     $app->addBodyParsingMiddleware();
-
-
 };

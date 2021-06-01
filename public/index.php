@@ -11,8 +11,6 @@ use DI\Container; ///<dependency injection container
 // autoload packages of composer
 require __DIR__ . '/../vendor/autoload.php';
 
-
-
 //set the container for class AppFactory 
 $container = new Container();
 $settings = require __DIR__ . '/../app/settings.php'; 
@@ -21,7 +19,7 @@ AppFactory::setContainer($container);
 
 //initialize container with database connection
 $connection = require __DIR__ . '/../app/connection.php';
-$connection($container);//,"sqlite"
+$connection($container);///<default MySQL, for sqlite $connection($container, "sqlite");
 
 $app = AppFactory::create();
 
@@ -47,14 +45,21 @@ $app->setBasePath((function () {
 })());
 
 /*Routes definition */
-$routes = require __DIR__ . '/../app/routes.php';
-$routes($app);
+//$routes = require __DIR__ . '/../app/routes.php';
+//$routes($app);
+$userRoutes = require __DIR__ . '/../app/routes/user.php';
+$userRoutes($app);
 
-$app->get("/", function(Req $request, Resp $response, array $args){
-    $name = $args['name'];
-    $response->getBody()->write("<h2>Server is running</h2>");
-   return $response;
-});
+$testRoutes = require __DIR__ . '/../app/routes/test.php';
+$testRoutes($app);
+
+$answerRoutes = require __DIR__ . '/../app/routes/answer.php';
+$answerRoutes($app);
+
+$twigViewsRoutes = require __DIR__ . '/../app/routes/twigViews.php';
+$twigViewsRoutes($app);
+
+
 /* CORS lazy (allow from all) */
 $app->options('/{routes:.+}', function ($request, $response, $args) {
     return $response;

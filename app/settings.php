@@ -25,8 +25,6 @@ return function (Container $container){
             'connection_sqlite' => [
                 //"host" => "localhost",
                 "dbname" => "/home/pcuser/q_form_db.db",
-                //"dbuser" => "pcuser",
-                //"dbpass" => "102938"
             ]
 
         ];
